@@ -13,19 +13,23 @@
 
 | モデル | 物理の課し方 | NMSE [dB] | 学習時間 |
 |---|---|---|---|
-| tanh-MLP（baseline） | PDE 残差損失 | +0.07 | 7.7 min |
-| SIREN | PDE 残差損失 | 発散（≈0） | 8.1 min |
+| tanh-MLP（baseline） | PDE 残差損失 | −6.18 ※ | 7.6 min |
+| SIREN | PDE 残差損失 | 発散（≈0） | 8.2 min |
 | SIREN（縮小 128×3, data のみ） | なし | +1.03（過学習） | 0.5 min |
-| modified MLP (Wang+ 2021) | PDE 残差損失 | −5.14 | 13.4 min |
-| HerglotzNet（平面波基底） | **アーキテクチャで厳密充足** | −16.11 | 1.1 min |
-| **PointSourceNet（ESM）+ 周波数カリキュラム** | **アーキテクチャで厳密充足** | **−33.27** | 1.3 min |
+| KScaledSiren（k·x 入力、40k+カリキュラム） | PDE 残差損失 | −5.87 | 17.0 min |
+| modified MLP (Wang+ 2021) | PDE 残差損失 | −7.78 | 13.1 min |
+| HerglotzNet（平面波基底） | **アーキテクチャで厳密充足** | −15.84 | 1.1 min |
+| **PointSourceNet（ESM）+ 周波数カリキュラム** | **アーキテクチャで厳密充足** | **−34.91** | 1.3 min |
+
+※ baseline は同一シードでも GPU 非決定性で +0.07 dB（停滞）と −6.18 dB
+（部分学習）に分かれる双安定な学習を示す。表は `run_all.sh` 再現実行の値。
 
 疎マイク実験（PointSourceNet + カリキュラム、40k steps）:
 
 | マイク数 | NMSE [dB] |
 |---|---|
-| 64 (8×8) | −25.65 |
-| 36 (6×6) | −31.39 |
+| 64 (8×8) | −25.15 |
+| 36 (6×6) | −31.38 |
 | 16 (4×4) | **−22.06** |
 
 16 mics（マイク間隔 0.33 m、空間ナイキスト ≈500 Hz）でも 8 kHz まで
@@ -36,13 +40,16 @@
 ## 主な知見
 
 1. **高波数では PDE 残差損失が学習を破綻させる。** kL ≈ 146 の広帯域
-   Helmholtz で、PDE 損失を持つ tanh-MLP は停滞、SIREN は発散
-   （lr 1e-4・勾配クリッピング・PDE 重み 0.01 でも回復せず）。
-   診断の決め手: SIREN は data 損失のみなら 1.6e-6 まで収束する
-   （ただし完全に過学習）— 問題は表現力ではなく PDE 項の最適化。
-   なお、試したどの SIREN 構成も baseline を意味のある差では上回れて
-   いない（表の「発散（≈0）」は数値上 baseline の +0.07 dB をわずかに
-   下回るが、いずれもノイズレベル）。
+   Helmholtz で、PDE 損失を持つ tanh-MLP は停滞〜部分学習、SIREN は発散
+   （lr 1e-4・勾配クリッピング・PDE 重み 0.01・周波数カリキュラムでも
+   回復せず）。SIREN は data 損失のみなら 1.6e-6 まで収束する（ただし
+   完全に過学習）— 問題は表現力ではなく PDE 項の最適化。
+   発散の根本原因は**低 k 側**にある: SIREN の固有曲率 (2ω₀W)² は k に
+   依存せず大きいため、k² 正規化残差が低周波で増幅される（初期 PDE
+   loss 35）。空間入力を k·x にスケールした KScaledSiren（第 1 層 =
+   ランダム平面波 sin(W·kx)、曲率 ∝ k²）は同一 PDE 損失で発散せず
+   安定学習し（PDE ~0.04）−5.87 dB に達するが、本実験の予算内では
+   baseline（−6.18 dB）を上回るに至らなかった。
 2. **物理は損失でなくアーキテクチャで課す。**
    - **HerglotzNet**: P(x,k) = Σⱼ cⱼ(k)·exp(i k dⱼ·(x−x₀))。単位円上の
      J=256 方向の平面波は各々 Helmholtz を厳密に満たす（autograd 検証の
@@ -80,6 +87,9 @@ python experiments/run.py --model psource --mics 8 --lr 5e-4 \
 python experiments/sparse_study.py --model psource --pde-weight 0 \
     --lr 5e-4 --reg 1.0 --curriculum --steps 40000
 python experiments/visualize.py --ckpt results/best_model.pt
+
+# KScaledSiren（run_all.sh には含まれない追加実験）
+python experiments/run.py --model ksiren --lr 5e-4 --steps 40000 --curriculum
 ```
 
 ## 構成
