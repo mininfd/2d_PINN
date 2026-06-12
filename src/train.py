@@ -48,7 +48,8 @@ def helmholtz_residual(model, xy, k_phys, k_min, k_max):
 
 def train_pinn(model, mic_xy, freqs, p_mic, *, steps=20000, lr=2e-3,
                data_batch=8192, colloc_batch=4096, pde_weight=1.0,
-               device="cuda", seed=0, log_every=1000, log=print):
+               grad_clip=None, device="cuda", seed=0, log_every=1000,
+               log=print):
     """Train a PINN on mic measurements. Returns per-frequency scale s [F]."""
     torch.manual_seed(seed)
     rng = np.random.default_rng(seed)
@@ -81,14 +82,20 @@ def train_pinn(model, mic_xy, freqs, p_mic, *, steps=20000, lr=2e-3,
         pred = model(inp_data[idx])
         loss_data = torch.mean((pred - tgt_t[idx]) ** 2)
 
-        cxy = torch.rand(colloc_batch, 2, device=device)
-        ck = torch.empty(colloc_batch, 1, device=device).uniform_(k_min, k_max)
-        r = helmholtz_residual(model, cxy, ck, k_min, k_max)
-        loss_pde = torch.mean(r ** 2)
+        if pde_weight > 0:
+            cxy = torch.rand(colloc_batch, 2, device=device)
+            ck = torch.empty(colloc_batch, 1, device=device).uniform_(k_min,
+                                                                      k_max)
+            r = helmholtz_residual(model, cxy, ck, k_min, k_max)
+            loss_pde = torch.mean(r ** 2)
+        else:
+            loss_pde = torch.zeros((), device=device)
 
         loss = loss_data + pde_weight * loss_pde
         opt.zero_grad(set_to_none=True)
         loss.backward()
+        if grad_clip:
+            torch.nn.utils.clip_grad_norm_(model.parameters(), grad_clip)
         opt.step()
         sched.step()
 

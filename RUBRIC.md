@@ -38,9 +38,9 @@
 
 - **Phase:** 2 loop
 - **Iterations used:** 2 of 15
-- **In-flight change:** Iter 2 — SIREN を lr=5e-4 で再実行（Iter 1 は lr=2e-3 で PDE loss が ~1e19 に発散）。仮説: SIREN は推奨 lr 1e-4〜5e-4 であり 2e-3 は高すぎる
-- **Last known-good state:** baseline 完了（NMSE +0.07 dB）、コミット b740779
-- **Next action:** SIREN(lr=5e-4) 完了 → 収束すれば仮説検証済みとして LEARNINGS に記録 → 発散なら ω0 を下げる / 勾配クリッピング
+- **In-flight change:** Iter 3 診断 — (a) SIREN data-only（pde_weight=0, 3k steps）と (b) SIREN+grad_clip=1.0（3k steps）で発散原因を切り分け。grad_clip オプションを train_pinn に追加済み
+- **Last known-good state:** baseline 完了（NMSE +0.07 dB）、コミット 1ef634d
+- **Next action:** 診断結果から Iter 3 本実行の構成を決定（PDE 項由来なら curriculum/クリッピング、データ項でも停滞なら表現の問題 → Herglotz 型物理基底など構造変更）
 
 ## Experiment log
 
