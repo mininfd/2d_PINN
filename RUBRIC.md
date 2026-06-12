@@ -17,8 +17,8 @@
 
 | # | Criterion | Check (command or inspection) | Type | Status |
 |---|-----------|-------------------------------|------|--------|
-| 1 | PDE 損失 PINN（pde_weight > 0、NN ベース）が NMSE < −7.78 dB @64 mics | `cat results/summary.csv`（該当行の notes に PDE 使用を明記） | mechanical | ☐ |
-| 2 | 勝者構成の再現実行（同一コマンド 2 回目）でも < −7.78 dB | `cat results/summary.csv` に同構成 2 行 | mechanical | ☐ |
+| 1 | PDE 損失 PINN（pde_weight > 0、NN ベース）が NMSE < −7.78 dB @64 mics | `cat results/summary.csv`（該当行の notes に PDE 使用を明記） | mechanical | ☑（ksiren 160k −7.83） |
+| 2 | 勝者構成の再現実行（同一コマンド 2 回目）でも < −7.78 dB | `cat results/summary.csv` に同構成 2 行 | mechanical | ☑（再現も −7.83） |
 | 3 | 単体テストが通過 | `C:\Projects\venv\Scripts\python.exe -m pytest tests -q` | mechanical | ☐ |
 | 4 | 勝者の再現コマンドが README に記載され、手法・結果が文書化 | verifier subagent | judgment | ☐ |
 | 5 | 失敗から得た検証済みルールが LEARNINGS.md に追記 | inspection | mechanical | ☐ |
@@ -33,9 +33,9 @@
 
 - **Phase:** 2 loop
 - **Iterations used:** 3 of 12
-- **In-flight change:** Iter 3 — criterion 2 の再現実行: ksiren 160k + curriculum を同一コマンドでもう一度（~68 分）。マージン 0.05 dB と薄いので不確実
-- **Last known-good state:** ksiren 160k −7.83 dB 記録済み
-- **Next action:** 再現 < −7.78 なら criteria 1+2 ✓ → 文書化・検証へ。失敗なら残予算で判断（正直な budget exit も視野）
+- **In-flight change:** Phase 3 — pytest（criterion 3）→ README/LEARNINGS 更新（criteria 4,5）→ verifier subagent
+- **Last known-good state:** ksiren 160k −7.83 dB ×2（criteria 1,2 ✓）
+- **Next action:** verifier 判定 → 最終報告
 
 ## Experiment log
 
@@ -43,3 +43,4 @@
 |---|--------|--------------------|-----------------------------|-------|-------|
 | 1 | KPlaneMMLP（sine 特徴 + mMLP body, 40k, curriculum） | structural | **−5.31 dB**（未達） | no | 発散せず安定（曲率整合は機能）だが data loss 0.154 で ksiren 40k（0.099）より悪い。mMLP body は sine 特徴と相乗しない |
 | 2 | ksiren 160k + curriculum | scalar | **−7.83 dB**（baseline 比 −0.05 dB、criterion 1 達成） | **keep** | data 0.002 / pde 0.0066。ダブリングあたり改善は −0.73 dB に鈍化（飽和傾向）。68.3 分 |
+| 3 | 同一コマンド再現実行 | — | **−7.83 dB**（criterion 2 達成） | **keep** | 終端 loss は異なる（data 0.0039 vs 0.0020）のに NMSE は 2 桁一致 → ksiren の走行間分散は小さい（tanh の双安定と対照的） |
