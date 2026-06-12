@@ -38,9 +38,9 @@
 
 - **Phase:** 2 loop
 - **Iterations used:** 9 of 15
-- **In-flight change:** Iter 8 — 最終構成（psource + curriculum + 40k steps, lr 5e-4, reg 1.0）で sparse_study.csv 再生成（{64,36,16}）+ 64 mics を summary.csv へ（best_model.pt 保存）。続けて SIREN 正当改善の単発試行（pde_weight 0.01 + clip 1.0 + lr 1e-4 + curriculum）
-- **Last known-good state:** psource 16 mics −18.12 dB（40k, diag.csv）、コミット a9f53bf
-- **Next action:** 結果記録 → run_all.sh 更新 → 可視化生成 → README 執筆 → Phase 3 検証（機械チェック + verifier subagent）
+- **In-flight change:** criterion 8 検証 — `bash run_all.sh` フル再現実行（テスト→全モデル→疎マイク→図、~36 分）。README・図は作成済み
+- **Last known-good state:** 全実験完了（psource 64→−33.27 / 16→−22.06 dB）、コミット済み
+- **Next action:** run_all 完走確認 → Phase 3: 全機械チェック実行 + criterion 9 の verifier subagent → 最終報告
 
 ## Experiment log
 
@@ -56,4 +56,4 @@
 | 7 | psource + 周波数カリキュラム @16 mics | structural | **NMSE −10.21 dB**（data loss 0.008、目標 −10 dB 達成） | **keep** | 3 真音源すべてを誤差 ~0.02 で同定（各 2 候補が振幅分担）。カリキュラム仮説検証済み。マージン薄 → 40k steps で強化を試行 |
 | 7b | 同上 + 40k steps | scalar | **NMSE −18.12 dB** @16 mics（+8 dB 改善） | **keep** | 全帯域到達後の精密化時間が支配的。これを最終構成とする |
 | 8 | 最終構成で全実験 | — | summary: psource 64 → **−33.27 dB**。sparse: 64/36/16 → −25.65/−31.39/**−22.06 dB**。SIREN(pde_w=0.01+clip+curr) → −0.01 dB | **keep** | criteria 6・7 を大差で達成。SIREN は PDE 重み 0.01 でも学習不能（ルール補強）。best_model.pt 保存 |
-| 9 | SIREN data-only 容量削減（128×3） | scalar | （実行中） | — | criterion 4 を「正当に」満たす最後の試行。失敗なら −0.06 dB の機械的パスを正直に注記 |
+| 9 | SIREN data-only 容量削減（128×3） | scalar | +1.03 dB（baseline 未満にならず） | no | SIREN の正当な改善は断念。criterion 4 は siren −0.06 dB < baseline +0.07 dB の機械的パス（ノイズレベルの差であることを README に注記） |
