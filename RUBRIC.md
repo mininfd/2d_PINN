@@ -34,10 +34,9 @@
 
 ## Loop state
 
-- **Phase:** 2（loop3 開始、2026-06-13）
-- **Iteration:** 0/12
-- **In-flight change:** なし
-- **Next action:** iter1 — train_pinn に L-BFGS 仕上げオプションを実装し、ksiren 40k + L-BFGS でスクリーニング（参照 −5.87）
+- **Phase:** 中止（2026-06-13、イテレーション消化 0/12）
+- **Status:** ユーザー指示により loop3 は「3 次元での測定範囲外音源の RIR 内挿」（`C:\Projects\3d_PINN`）へ再定義。この −9 dB 押し込みタスクは未着手のまま終了（in-flight だった L-BFGS 実装は revert 済み）
+- **Next action:** なし（後継: `C:\Projects\3d_PINN\RUBRIC.md`）
 
 ## Experiment log
 
