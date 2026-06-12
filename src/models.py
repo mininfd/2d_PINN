@@ -85,6 +85,48 @@ class ModifiedMLP(nn.Module):
         return self.out(h)
 
 
+class HerglotzNet(nn.Module):
+    """Physics-exact plane-wave (Herglotz) basis with k-dependent coefficients.
+
+    P(x, k) = sum_j c_j(k) * exp(i k d_j . (x - x0)),  d_j on the unit circle.
+    Every basis function satisfies the homogeneous Helmholtz equation exactly,
+    so the model needs only the data loss; the PDE is built into the
+    architecture. The complex coefficients c_j(k) come from a SIREN over k
+    (the coefficients of exterior sources oscillate rapidly in k, which a
+    tanh MLP cannot represent).
+
+    Takes the same normalized input (x_norm, y_norm, k_norm) in [-1,1]^3 as
+    the other models; k_min/k_max of the global frequency range are baked in
+    to undo the normalization internally.
+    """
+
+    def __init__(self, n_dirs=256, width=256, depth=3, omega0=30.0,
+                 omega0_hidden=30.0):
+        super().__init__()
+        from . import data as D
+        k = D.wavenumber(D.frequencies())
+        self.k_min, self.k_max = float(k.min()), float(k.max())
+        self.n_dirs = n_dirs
+        ang = torch.arange(n_dirs, dtype=torch.float32) * (2 * math.pi / n_dirs)
+        self.register_buffer("dirs", torch.stack([torch.cos(ang),
+                                                  torch.sin(ang)]))  # [2, J]
+        self.coef = Siren(in_dim=1, width=width, depth=depth,
+                          out_dim=2 * n_dirs, omega0=omega0,
+                          omega0_hidden=omega0_hidden)
+
+    def forward(self, x):
+        xy = (x[:, :2] + 1.0) * 0.5 - 0.5  # physical coords relative to center
+        k = (x[:, 2:3] + 1.0) * 0.5 * (self.k_max - self.k_min) + self.k_min
+        phase = k * (xy @ self.dirs)       # [N, J]
+        c = self.coef(x[:, 2:3])           # [N, 2J]
+        a, b = c[:, :self.n_dirs], c[:, self.n_dirs:]
+        cosp, sinp = torch.cos(phase), torch.sin(phase)
+        norm = math.sqrt(self.n_dirs)
+        re = (a * cosp - b * sinp).sum(-1) / norm
+        im = (a * sinp + b * cosp).sum(-1) / norm
+        return torch.stack([re, im], dim=-1)
+
+
 def make_model(name: str, **kwargs) -> nn.Module:
     name = name.lower()
     if name in ("tanh", "mlp", "baseline"):
@@ -93,4 +135,6 @@ def make_model(name: str, **kwargs) -> nn.Module:
         return Siren(**kwargs)
     if name in ("mmlp", "modified_mlp"):
         return ModifiedMLP(**kwargs)
+    if name in ("herglotz", "hnet"):
+        return HerglotzNet(**kwargs)
     raise ValueError(f"unknown model: {name}")
