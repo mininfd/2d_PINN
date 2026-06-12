@@ -32,12 +32,13 @@
 ## Loop state
 
 - **Phase:** 2 loop
-- **Iterations used:** 0 of 12
-- **In-flight change:** Iter 1 — KPlaneMMLP（SineLayer(2→128, ω0=3) on k·xy + ModifiedMLP body, in=129）を実装し、pde_weight 1.0 + curriculum + lr 5e-4 + 40k steps で実行
-- **Last known-good state:** 前ループ最終コミット（9/9 達成）
-- **Next action:** KPlaneMMLP の NMSE 確認 → 記録・コミット → 並行して ksiren 160k をキュー
+- **Iterations used:** 2 of 12
+- **In-flight change:** Iter 2 — ksiren 160k steps + curriculum（トレンド外挿: 20k/40k/80k → −4.13/−5.87/−7.10、ダブリングごと −1.7/−1.2 dB 改善 → 160k で ~−8 dB 見込み、~70 分）
+- **Last known-good state:** loop2 開始コミット
+- **Next action:** ksiren 160k < −7.78 なら criterion 1 ✓ → 再現実行（criterion 2）。届かなければ ksiren 幅拡大 or RBA 重み付けへ
 
 ## Experiment log
 
 | # | Change | Structural / Scalar | Result vs. baseline (−7.78) | Keep? | Notes |
 |---|--------|--------------------|-----------------------------|-------|-------|
+| 1 | KPlaneMMLP（sine 特徴 + mMLP body, 40k, curriculum） | structural | **−5.31 dB**（未達） | no | 発散せず安定（曲率整合は機能）だが data loss 0.154 で ksiren 40k（0.099）より悪い。mMLP body は sine 特徴と相乗しない |
