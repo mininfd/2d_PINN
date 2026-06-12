@@ -17,6 +17,7 @@ def main():
     ap.add_argument("--pde-weight", type=float, default=1.0)
     ap.add_argument("--lr", type=float, default=2e-3)
     ap.add_argument("--reg", type=float, default=0.0)
+    ap.add_argument("--curriculum", action="store_true")
     ap.add_argument("--omega0", type=float, default=None)
     ap.add_argument("--omega0-hidden", type=float, default=None)
     args = ap.parse_args()
@@ -34,7 +35,8 @@ def main():
                        model_kwargs=model_kwargs,
                        train_kwargs={"pde_weight": args.pde_weight,
                                      "lr": args.lr,
-                                     "reg_weight": args.reg},
+                                     "reg_weight": args.reg,
+                                     "k_curriculum": args.curriculum},
                        save_ckpt=f"sparse_{args.model}_{side}x{side}.pt",
                        summary_path=out)
     print(f"wrote {out}")
