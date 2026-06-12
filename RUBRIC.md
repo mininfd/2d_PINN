@@ -36,11 +36,11 @@
 
 ## Loop state
 
-- **Phase:** 完了（2026-06-13）
-- **Iterations used:** 12 of 15
-- **Final status:** 8/9 基準達成。criterion 4（SIREN > baseline）のみ未達（最良 ksiren −5.87 dB vs baseline −6.18 dB、差 0.31 dB）。独立 verifier subagent が全基準を検証済み（README・CSV・図の整合も確認）
-- **Last known-good state:** 最終コミット
-- **Next action:** なし（再開時は criterion 4 の続きから: ksiren の学習延長で逆転の可能性あり、実験ログ #12 参照）
+- **Phase:** 2 loop（criterion 4 のみ再開、ユーザー指示 2026-06-13）
+- **Iterations used:** 13 of 15
+- **In-flight change:** Iter 13 — ksiren を 80k steps + curriculum で実行（40k 時点で data loss 減少継続中だったため学習延長で逆転を狙う）
+- **Last known-good state:** 8/9 達成、コミット d8cea12
+- **Next action:** ksiren 80k < −6.18 dB なら criterion 4 ☑ に更新し README 反映。届かなければ残り 2 イテレーションで判断（さらなる延長 or 終了）
 
 ## Experiment log
 
