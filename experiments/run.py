@@ -18,6 +18,8 @@ def main():
     ap.add_argument("--pde-weight", type=float, default=1.0)
     ap.add_argument("--lr", type=float, default=2e-3)
     ap.add_argument("--grad-clip", type=float, default=None)
+    ap.add_argument("--reg", type=float, default=0.0,
+                    help="coefficient l2 penalty weight (herglotz)")
     ap.add_argument("--omega0", type=float, default=None,
                     help="SIREN first-layer omega0")
     ap.add_argument("--omega0-hidden", type=float, default=None)
@@ -35,7 +37,8 @@ def main():
     run_experiment(args.model, args.mics, steps=args.steps, notes=args.notes,
                    model_kwargs=model_kwargs,
                    train_kwargs={"pde_weight": args.pde_weight, "lr": args.lr,
-                                 "grad_clip": args.grad_clip},
+                                 "grad_clip": args.grad_clip,
+                                 "reg_weight": args.reg},
                    save_ckpt=args.ckpt, summary_path=args.summary)
 
 

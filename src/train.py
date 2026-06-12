@@ -48,8 +48,8 @@ def helmholtz_residual(model, xy, k_phys, k_min, k_max):
 
 def train_pinn(model, mic_xy, freqs, p_mic, *, steps=20000, lr=2e-3,
                data_batch=8192, colloc_batch=4096, pde_weight=1.0,
-               grad_clip=None, device="cuda", seed=0, log_every=1000,
-               log=print):
+               grad_clip=None, reg_weight=0.0, device="cuda", seed=0,
+               log_every=1000, log=print):
     """Train a PINN on mic measurements. Returns per-frequency scale s [F]."""
     torch.manual_seed(seed)
     rng = np.random.default_rng(seed)
@@ -92,6 +92,8 @@ def train_pinn(model, mic_xy, freqs, p_mic, *, steps=20000, lr=2e-3,
             loss_pde = torch.zeros((), device=device)
 
         loss = loss_data + pde_weight * loss_pde
+        if reg_weight and hasattr(model, "coef_penalty"):
+            loss = loss + reg_weight * model.coef_penalty(inp_data[idx])
         opt.zero_grad(set_to_none=True)
         loss.backward()
         if grad_clip:

@@ -126,6 +126,16 @@ class HerglotzNet(nn.Module):
         im = (a * sinp + b * cosp).sum(-1) / norm
         return torch.stack([re, im], dim=-1)
 
+    def coef_penalty(self, x):
+        """Mean squared Herglotz coefficient (Tikhonov / minimum-norm reg).
+
+        The minimum-l2-norm plane-wave fit is equivalent to kernel
+        interpolation with the J0 Bessel kernel, the standard prior for
+        sound-field reconstruction from sparse mics.
+        """
+        c = self.coef(x[:, 2:3])
+        return (c ** 2).mean()
+
 
 def make_model(name: str, **kwargs) -> nn.Module:
     name = name.lower()
