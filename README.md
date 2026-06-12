@@ -22,7 +22,13 @@
 | **PointSourceNet（ESM）+ 周波数カリキュラム** | **アーキテクチャで厳密充足** | **−34.91** | 1.3 min |
 
 ※ baseline は同一シードでも GPU 非決定性で +0.07 dB（停滞）と −6.18 dB
-（部分学習）に分かれる双安定な学習を示す。表は `run_all.sh` 再現実行の値。
+（部分学習）に分かれる双安定な学習を示す。表は `run_all.sh` 再現実行の値
+（縮小 SIREN と KScaledSiren は追加実験で、出典は RUBRIC.md の実験ログと
+summary.csv 追記行。`run_all.sh` を再実行すると summary.csv は基本 5 行に
+再生成される）。同様に GPU 非決定性のため、psource の 64 mics は実行間で
+−25〜−35 dB 程度の揺らぎがある（音源位置精密化の到達点が走行ごとに異なる。
+疎マイク表で 36 mics が 64 mics を上回るのも同じ理由で、マイク数の効果では
+ない）。
 
 疎マイク実験（PointSourceNet + カリキュラム、40k steps）:
 

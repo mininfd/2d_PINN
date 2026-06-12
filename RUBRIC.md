@@ -32,15 +32,15 @@
 | 6 | 最良モデルが 64 mics で NMSE ≤ −15 dB | `cat results/summary.csv` | mechanical | ☑ |
 | 7 | 疎マイク実験 {64,36,16} が完了し 16 mics で NMSE ≤ −10 dB | `cat results/sparse_study.csv` | mechanical | ☑ |
 | 8 | 単一コマンドで全パイプライン再現可能 | `bash run_all.sh` が完走 | mechanical | ☑ |
-| 9 | README に手法・結果・可視化（音場スナップショット図）が記載 | verifier subagent が README と図を検査 | judgment | ☐ |
+| 9 | README に手法・結果・可視化（音場スナップショット図）が記載 | verifier subagent が README と図を検査 | judgment | ☑ |
 
 ## Loop state
 
-- **Phase:** 2 loop
+- **Phase:** 完了（2026-06-13）
 - **Iterations used:** 12 of 15
-- **In-flight change:** Phase 3 検証 — criterion 4 は未達で確定（ksiren −5.87 dB が最終）。README に ksiren の知見を反映 → 機械チェック一式 → criterion 9 の verifier subagent → 最終報告
-- **Last known-good state:** 全実験完了、コミット済み
-- **Next action:** verifier の判定を受けて最終 per-criterion 報告（criterion 4 のみ未達の見込み）
+- **Final status:** 8/9 基準達成。criterion 4（SIREN > baseline）のみ未達（最良 ksiren −5.87 dB vs baseline −6.18 dB、差 0.31 dB）。独立 verifier subagent が全基準を検証済み（README・CSV・図の整合も確認）
+- **Last known-good state:** 最終コミット
+- **Next action:** なし（再開時は criterion 4 の続きから: ksiren の学習延長で逆転の可能性あり、実験ログ #12 参照）
 
 ## Experiment log
 
