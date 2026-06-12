@@ -25,6 +25,9 @@ def test_all_models_forward_shape():
         assert make_model(name, width=16, depth=2)(x).shape == (5, 2)
     assert make_model("herglotz", n_dirs=8, width=16, depth=2)(x).shape == (5, 2)
     assert make_model("psource", n_src=4)(x.clamp(-1, 1)).shape == (5, 2)
+    assert make_model("ksiren", width=16, depth=2)(x.clamp(-1, 1)).shape == (5, 2)
+    assert make_model("kpmmlp", n_feat=8, width=16,
+                      depth=2)(x.clamp(-1, 1)).shape == (5, 2)
 
 
 def test_psource_matches_analytic_greens():

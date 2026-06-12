@@ -163,6 +163,31 @@ class KScaledSiren(nn.Module):
         return self.net(feat)
 
 
+class KPlaneMMLP(nn.Module):
+    """Sine plane-wave feature layer on k-scaled coordinates + ModifiedMLP body.
+
+    Combines the two ingredients that individually helped PDE-loss training:
+    KScaledSiren's curvature matching (first-layer atoms sin(W·kx) have
+    curvature ∝ k², keeping the k²-normalized Helmholtz residual O(1) at all
+    frequencies) and the ModifiedMLP body (the only PDE-loss network that
+    partially learned with plain inputs).
+    """
+
+    def __init__(self, n_feat=128, width=256, depth=4, omega0=3.0):
+        super().__init__()
+        from . import data as D
+        k = D.wavenumber(D.frequencies())
+        self.k_min, self.k_max = float(k.min()), float(k.max())
+        self.feat = SineLayer(2, n_feat, omega0, is_first=True)
+        self.body = ModifiedMLP(in_dim=n_feat + 1, width=width, depth=depth)
+
+    def forward(self, x):
+        xy = (x[:, :2] + 1.0) * 0.5 - 0.5  # physical coords around center
+        k = (x[:, 2:3] + 1.0) * 0.5 * (self.k_max - self.k_min) + self.k_min
+        f = self.feat(k * xy)
+        return self.body(torch.cat([f, x[:, 2:3]], dim=1))
+
+
 class _BesselJ0(torch.autograd.Function):
     """torch.special.bessel_j0 with the (missing) backward J0'(x) = -J1(x)."""
 
@@ -257,4 +282,6 @@ def make_model(name: str, **kwargs) -> nn.Module:
         return PointSourceNet(**kwargs)
     if name == "ksiren":
         return KScaledSiren(**kwargs)
+    if name == "kpmmlp":
+        return KPlaneMMLP(**kwargs)
     raise ValueError(f"unknown model: {name}")
