@@ -37,10 +37,10 @@
 ## Loop state
 
 - **Phase:** 2 loop
-- **Iterations used:** 5 of 15
-- **In-flight change:** Iter 5 — Herglotz 係数 ℓ2 正則化（coef_penalty + reg_weight）を実装。16 mics で reg ∈ {1e-3, 1e-2, 1e-1} をスイープ（各 20k steps ≈1.1 min）→ results/reg_sweep.csv
-- **Last known-good state:** herglotz 64 mics −16.05 dB（sparse_study.csv）、コミット e8c7ce0
-- **Next action:** 最良 reg で 16 mics ≤ −10 dB を確認 → sparse_study.csv を最良 reg で再生成 → SIREN 正当改善の試行 → run_all.sh 更新・README・可視化
+- **Iterations used:** 6 of 15
+- **In-flight change:** Iter 6 — PointSourceNet（ESM 型: 学習可能位置の M=16 モノポール、k-フラット複素振幅 + 共有 k 変調 MLP、域外拘束ペナルティ）を実装し 16 mics データのみで学習
+- **Last known-good state:** herglotz 64 mics −16.05 dB、reg sweep 完了、コミット 344e102
+- **Next action:** psource 16 mics の NMSE 確認（≤ −10 dB 目標、期待は大幅超過）→ 良ければ sparse_study.csv を psource で再生成 → SIREN 正当改善 → run_all/README/可視化
 
 ## Experiment log
 
@@ -51,3 +51,4 @@
 | 2 | SIREN lr=5e-4 | scalar | **発散**: PDE loss ~1e17、NMSE −0.06 dB | no | lr 仮説棄却。診断: data-only は loss 1.6e-6 まで収束（NMSE +0.27 dB = 過学習）、grad_clip=1.0 でも PDE は 1e8 に爆発 → PDE 損失項が根本原因 |
 | 3 | HerglotzNet J=256（平面波基底 + SIREN(k) 係数、data 損失のみ） | structural | **NMSE −16.11 dB**（1.1 min）— baseline 比 −16.2 dB 改善、criterion 6 達成 | **keep** | PDE はアーキテクチャで厳密充足（テストで autograd 検証）。途中 loss スパイクあり（cosine lr で回復） |
 | 4 | 疎マイク {64,36,16} + mMLP 64 | — | herglotz: 64→−16.05 / 36→−10.71 / **16→−5.76 dB（未達）**。mmlp: −5.14 dB | keep | 16 mics は 256 方向基底に対し劣決定で過学習。mmlp は baseline を 5 dB 上回る（criterion 5 達成）。siren(+PDE) 爆発・tanh 停滞に対し mmlp は部分的に学習する点も興味深い |
+| 5 | Herglotz 係数 ℓ2（Tikhonov）reg ∈ {1e-3,1e-2,1e-1} @16 mics | scalar | −6.49 / **−6.88** / −6.31 dB（−5.76 から改善も目標 −10 dB に遠い） | no | reg 依存性が平坦 = 係数ノルムは本質でない。16 mics の鍵は広帯域（k 方向）コヒーレンス → 周波数フラット音源という構造事前知識が必要 |
