@@ -48,8 +48,8 @@ def helmholtz_residual(model, xy, k_phys, k_min, k_max):
 
 def train_pinn(model, mic_xy, freqs, p_mic, *, steps=20000, lr=2e-3,
                data_batch=8192, colloc_batch=4096, pde_weight=1.0,
-               grad_clip=None, reg_weight=0.0, device="cuda", seed=0,
-               log_every=1000, log=print):
+               grad_clip=None, reg_weight=0.0, k_curriculum=False,
+               device="cuda", seed=0, log_every=1000, log=print):
     """Train a PINN on mic measurements. Returns per-frequency scale s [F]."""
     torch.manual_seed(seed)
     rng = np.random.default_rng(seed)
@@ -78,7 +78,16 @@ def train_pinn(model, mic_xy, freqs, p_mic, *, steps=20000, lr=2e-3,
                                                        eta_min=lr * 1e-2)
     t0 = time.time()
     for step in range(1, steps + 1):
-        idx = torch.randint(0, n_data, (min(data_batch, n_data),), device=device)
+        if k_curriculum:
+            # frequency marching: rows are frequency-major, so a growing
+            # prefix exposes low frequencies first (smooth loss landscape
+            # for source positions), reaching the full band at 60% of steps
+            frac = min(1.0, 0.05 + 0.95 * step / (0.6 * steps))
+            n_avail = max(M, int(frac * n_data))
+        else:
+            n_avail = n_data
+        idx = torch.randint(0, n_avail, (min(data_batch, n_avail),),
+                            device=device)
         pred = model(inp_data[idx])
         loss_data = torch.mean((pred - tgt_t[idx]) ** 2)
 

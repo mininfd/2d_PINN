@@ -20,6 +20,8 @@ def main():
     ap.add_argument("--grad-clip", type=float, default=None)
     ap.add_argument("--reg", type=float, default=0.0,
                     help="coefficient l2 penalty weight (herglotz)")
+    ap.add_argument("--curriculum", action="store_true",
+                    help="frequency-marching curriculum (low k first)")
     ap.add_argument("--omega0", type=float, default=None,
                     help="SIREN first-layer omega0")
     ap.add_argument("--omega0-hidden", type=float, default=None)
@@ -38,7 +40,8 @@ def main():
                    model_kwargs=model_kwargs,
                    train_kwargs={"pde_weight": args.pde_weight, "lr": args.lr,
                                  "grad_clip": args.grad_clip,
-                                 "reg_weight": args.reg},
+                                 "reg_weight": args.reg,
+                                 "k_curriculum": args.curriculum},
                    save_ckpt=args.ckpt, summary_path=args.summary)
 
 
