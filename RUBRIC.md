@@ -26,7 +26,7 @@
 |---|-----------|-------------------------------|------|--------|
 | 1 | コンテナ環境が動作（torch + CUDA 利用可能） | `podman run --rm --device nvidia.com/gpu=all localhost/2d_pinn python3 -c "import torch; assert torch.cuda.is_available()"` | mechanical | ☑ |
 | 2 | データ生成器が解析解と一致（単体テスト通過） | `C:\Projects\venv\Scripts\python.exe -m pytest tests -x -q` | mechanical | ☑ |
-| 3 | Baseline（tanh-MLP PINN, 64 mics）の NMSE が記録済み | `cat results/baseline.log` | mechanical | ☐ |
+| 3 | Baseline（tanh-MLP PINN, 64 mics）の NMSE が記録済み | `cat results/baseline.log` | mechanical | ☑ |
 | 4 | SIREN PINN が baseline を上回る（NMSE < baseline） | `cat results/summary.csv`（siren 行の NMSE < baseline NMSE） | mechanical | ☐ |
 | 5 | mMLP PINN が実装され結果表に記載 | `cat results/summary.csv` に mmlp 行が存在 | mechanical | ☐ |
 | 6 | 最良モデルが 64 mics で NMSE ≤ −15 dB | `cat results/summary.csv` | mechanical | ☐ |
@@ -37,13 +37,13 @@
 ## Loop state
 
 - **Phase:** 2 loop
-- **Iterations used:** 0 of 15
-- **In-flight change:** Iter 0 — 前セッションの baseline 実行は結果を残さず中断（results/ 不存在）。pytest 8 件再通過確認済み。baseline（tanh-MLP 5x256, 64 mics, 20k steps）を再実行する
-- **Last known-good state:** コード実装 + テスト通過（コミット予定: implement data/models/train + tests）
-- **Next action:** baseline 完了 → results/baseline.log 確認 → 実験ログ記録・コミット → Iter 1: SIREN 同条件で実行
+- **Iterations used:** 1 of 15
+- **In-flight change:** Iter 1 — SIREN（5x256, ω0=30, 64 mics, 20k steps, 他条件 baseline と同一）を実行する
+- **Last known-good state:** baseline 完了（NMSE +0.07 dB）、コミット済み
+- **Next action:** SIREN 完了 → summary.csv 確認 → 実験ログ記録・コミット → 結果に応じて ω0 調整 or Iter: mMLP
 
 ## Experiment log
 
 | # | Change | Structural / Scalar | Result vs. baseline | Keep? | Notes |
 |---|--------|--------------------|--------------------|-------|-------|
-| 0 | baseline | — | — | — | tanh-MLP, 64 mics, 8 kHz |
+| 0 | baseline | — | NMSE **+0.07 dB**（7.7 min, 20k steps） | keep | tanh-MLP 5x256, 64 mics。data loss 0.50→0.24 で停滞 — スペクトラルバイアスにより広帯域 (50–8000 Hz) をほぼ表現できず |
