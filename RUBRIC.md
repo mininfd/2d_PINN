@@ -14,18 +14,18 @@
   - Source 1: (-0.5, 0.5), amp=1.0
   - Source 2: (-0.5, -0.5), amp=0.7（y=0 鏡像）
   - Source 3: (-0.5, 1.5), amp=0.7（y=1 鏡像）
-- 信号帯域: 50 Hz ～ 8000 Hz（10 Hz ステップ、797 周波数ビン）
+- 信号帯域: 50 Hz ～ 8000 Hz（10 Hz ステップ、796 周波数ビン）※初版の 797 は計算誤り（LEARNINGS.md 参照）
 - 学習マイク: 領域内格子点 {8×8=64, 6×6=36, 4×4=16}
 - 評価: 33×33 密グリッド（held-out）での周波数域 NMSE [dB] = 10·log10(Σ|P̂−P|²/Σ|P|²)
-- 実行環境: podman `localhost/2d_pinn`（torch 2.1.0, RTX 4080 SUPER GPU）
-  - 実行コマンド: `podman run --rm --device nvidia.com/gpu=all -v <path>:/workspace:z localhost/2d_pinn python3 /workspace/...`
+- 実行環境: venv `C:\Projects\venv`（Python 3.13, torch 2.9.1+rocm, GPU 利用可）
+  - podman はイメージ消失により使用不可（LEARNINGS.md 参照）。実行コマンド: `C:\Projects\venv\Scripts\python.exe ...`（チェックコマンド中の `podman run ... python3` / `pytest` は venv 相当に読み替え）
 
 ## Criteria
 
 | # | Criterion | Check (command or inspection) | Type | Status |
 |---|-----------|-------------------------------|------|--------|
 | 1 | コンテナ環境が動作（torch + CUDA 利用可能） | `podman run --rm --device nvidia.com/gpu=all localhost/2d_pinn python3 -c "import torch; assert torch.cuda.is_available()"` | mechanical | ☑ |
-| 2 | データ生成器が解析解と一致（単体テスト通過） | `podman run ... pytest /workspace/tests/ -x -q` | mechanical | ☐ |
+| 2 | データ生成器が解析解と一致（単体テスト通過） | `C:\Projects\venv\Scripts\python.exe -m pytest tests -x -q` | mechanical | ☑ |
 | 3 | Baseline（tanh-MLP PINN, 64 mics）の NMSE が記録済み | `cat results/baseline.log` | mechanical | ☐ |
 | 4 | SIREN PINN が baseline を上回る（NMSE < baseline） | `cat results/summary.csv`（siren 行の NMSE < baseline NMSE） | mechanical | ☐ |
 | 5 | mMLP PINN が実装され結果表に記載 | `cat results/summary.csv` に mmlp 行が存在 | mechanical | ☐ |
@@ -38,9 +38,9 @@
 
 - **Phase:** 2 loop
 - **Iterations used:** 0 of 15
-- **In-flight change:** Iter 0 — 全コード実装 + ベースライン（tanh-MLP, 64 mics）実行
-- **Last known-good state:** none（初回実装前）
-- **Next action:** src/, tests/, experiments/ を実装 → pytest → baseline 実行 → results/baseline.log 確認 → RUBRIC 更新
+- **In-flight change:** Iter 0 — 前セッションの baseline 実行は結果を残さず中断（results/ 不存在）。pytest 8 件再通過確認済み。baseline（tanh-MLP 5x256, 64 mics, 20k steps）を再実行する
+- **Last known-good state:** コード実装 + テスト通過（コミット予定: implement data/models/train + tests）
+- **Next action:** baseline 完了 → results/baseline.log 確認 → 実験ログ記録・コミット → Iter 1: SIREN 同条件で実行
 
 ## Experiment log
 
