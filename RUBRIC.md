@@ -37,7 +37,7 @@
 ## Loop state
 
 - **Phase:** 2 loop
-- **Iterations used:** 11 of 15
+- **Iterations used:** 12 of 15
 - **In-flight change:** Iter 11 — KScaledSiren（空間入力を k·x にスケール → 第 1 層が sin(W·kx) のランダム平面波、固有曲率が k² に追従し正規化 PDE 残差が全帯域 O(1)）を実装、pde_weight 1.0 で実行
 - **Last known-good state:** run_all 完走（criterion 8 ✓）、psource 64→−34.91 / 16→−22.06 dB、コミット e599ab8
 - **Next action:** ksiren < −6.18 dB なら criterion 4 を SIREN 系 PINN として達成と注記。失敗なら criterion 4 未達で Phase 3 へ（機械チェック + criterion 9 verifier → 最終報告）
@@ -58,3 +58,5 @@
 | 8 | 最終構成で全実験 | — | summary: psource 64 → **−33.27 dB**。sparse: 64/36/16 → −25.65/−31.39/**−22.06 dB**。SIREN(pde_w=0.01+clip+curr) → −0.01 dB | **keep** | criteria 6・7 を大差で達成。SIREN は PDE 重み 0.01 でも学習不能（ルール補強）。best_model.pt 保存 |
 | 9 | SIREN data-only 容量削減（128×3） | scalar | +1.03 dB（baseline 未満にならず） | no | SIREN の正当な改善は断念。criterion 4 は siren −0.06 dB < baseline +0.07 dB の機械的パス（ノイズレベルの差であることを README に注記） |
 | 10 | SIREN + PDE-k カリキュラム | structural | **発散**（step 1 で PDE 35、step 1000 で 1e17、NMSE +0.14 dB） | no | 決定的診断: 爆発は低 k で発生。SIREN の固有曲率 (2ω₀W)² が k 非依存に大きく、低 k の 1/k² 正規化が残差を増幅 → 曲率を k に追従させる構造が必要 |
+| 11 | KScaledSiren（k·x 入力、ω0=3/1）+ PDE | structural | **発散せず**（PDE ~0.05 で安定）、NMSE −4.13 dB（baseline −6.18 に未達） | 継続 | 曲率診断を検証。data loss 0.20 で頭打ち = 最適化不足 → 40k + curriculum で最終試行 |
+| 12 | 同上 + 40k steps + curriculum | scalar | （実行中） | — | criterion 4 の最終試行。失敗なら未達として報告 |
