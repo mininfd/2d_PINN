@@ -16,7 +16,7 @@
 | tanh-MLP（baseline） | PDE 残差損失 | −6.18 ※ | 7.6 min |
 | SIREN | PDE 残差損失 | 発散（≈0） | 8.2 min |
 | SIREN（縮小 128×3, data のみ） | なし | +1.03（過学習） | 0.5 min |
-| KScaledSiren（k·x 入力、40k+カリキュラム） | PDE 残差損失 | −5.87 | 17.0 min |
+| KScaledSiren（k·x 入力、80k+カリキュラム） | PDE 残差損失 | **−7.10** | 34.3 min |
 | modified MLP (Wang+ 2021) | PDE 残差損失 | −7.78 | 13.1 min |
 | HerglotzNet（平面波基底） | **アーキテクチャで厳密充足** | −15.84 | 1.1 min |
 | **PointSourceNet（ESM）+ 周波数カリキュラム** | **アーキテクチャで厳密充足** | **−34.91** | 1.3 min |
@@ -53,9 +53,10 @@ summary.csv 追記行。`run_all.sh` を再実行すると summary.csv は基本
    発散の根本原因は**低 k 側**にある: SIREN の固有曲率 (2ω₀W)² は k に
    依存せず大きいため、k² 正規化残差が低周波で増幅される（初期 PDE
    loss 35）。空間入力を k·x にスケールした KScaledSiren（第 1 層 =
-   ランダム平面波 sin(W·kx)、曲率 ∝ k²）は同一 PDE 損失で発散せず
-   安定学習し（PDE ~0.04）−5.87 dB に達するが、本実験の予算内では
-   baseline（−6.18 dB）を上回るに至らなかった。
+   ランダム平面波 sin(W·kx)、曲率 ∝ k²）は同一 PDE 損失で発散せず安定
+   学習し（PDE ~0.02）、学習ステップに対し単調改善（20k/40k/80k で
+   −4.13/−5.87/−7.10 dB）して 80k steps で baseline（−6.18 dB）を上回る。
+   PDE 損失で学習できた唯一の sine 系ネットワークである。
 2. **物理は損失でなくアーキテクチャで課す。**
    - **HerglotzNet**: P(x,k) = Σⱼ cⱼ(k)·exp(i k dⱼ·(x−x₀))。単位円上の
      J=256 方向の平面波は各々 Helmholtz を厳密に満たす（autograd 検証の
@@ -95,7 +96,7 @@ python experiments/sparse_study.py --model psource --pde-weight 0 \
 python experiments/visualize.py --ckpt results/best_model.pt
 
 # KScaledSiren（run_all.sh には含まれない追加実験）
-python experiments/run.py --model ksiren --lr 5e-4 --steps 40000 --curriculum
+python experiments/run.py --model ksiren --lr 5e-4 --steps 80000 --curriculum
 ```
 
 ## 構成

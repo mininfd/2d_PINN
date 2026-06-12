@@ -21,6 +21,8 @@ Distilled, verified facts and rules for this project. Read this before working; 
 
 - **[verified 2026-06-13]** SIREN+PDE 発散の根本原因は**低 k** にある: SIREN の固有曲率 (2ω₀W)² は k 非依存に大きく、k² 正規化残差が低 k で増幅される（step 1 で PDE loss 35、PDE-k カリキュラムでも発散）。空間入力を k·x にスケールした KScaledSiren（第 1 層 = ランダム平面波 sin(W·kx)、曲率 ∝ k²）は同じ PDE 損失で発散せず安定学習する（PDE ~0.05）。
   **Rule:** マルチスケール Helmholtz PINN ではネットの固有曲率スケールを k に追従させる（入力の k スケーリング等）。それなしの SIREN+PDE は帯域が広いと必ず破綻する。
+- **[verified 2026-06-13]** KScaledSiren は学習ステップに対し単調改善する（20k/40k/80k → −4.13/−5.87/−7.10 dB、cosine lr）。80k で tanh baseline（−6.18 dB）超え。
+  **Rule:** 安定化した PINN が頭打ちに見えても、cosine スケジュールの総ステップ延長をまず試す。
 - **[verified 2026-06-12]** 同一シード（torch.manual_seed(0)）でも GPU 非決定性により tanh-PINN baseline の結果が +0.07 dB と −6.18 dB に分かれた（双安定な学習）。
   **Rule:** ~0 dB 付近の NN-PINN の結果は再現でブレる前提で扱い、基準判定は再現実行後のファイル（summary.csv / baseline.log）に対して行う。
 

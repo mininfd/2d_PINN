@@ -27,7 +27,7 @@
 | 1 | コンテナ環境が動作（torch + CUDA 利用可能） | `podman run --rm --device nvidia.com/gpu=all localhost/2d_pinn python3 -c "import torch; assert torch.cuda.is_available()"` | mechanical | ☑ |
 | 2 | データ生成器が解析解と一致（単体テスト通過） | `C:\Projects\venv\Scripts\python.exe -m pytest tests -x -q` | mechanical | ☑ |
 | 3 | Baseline（tanh-MLP PINN, 64 mics）の NMSE が記録済み | `cat results/baseline.log` | mechanical | ☑ |
-| 4 | SIREN PINN が baseline を上回る（NMSE < baseline） | `cat results/summary.csv`（siren 行の NMSE < baseline NMSE） | mechanical | **✗ 未達** |
+| 4 | SIREN PINN が baseline を上回る（NMSE < baseline） | `cat results/summary.csv`（siren 行の NMSE < baseline NMSE） | mechanical | ☑（ksiren −7.10 < −6.18。標準 SIREN は発散、k スケール入力の SIREN 変種で達成） |
 | 5 | mMLP PINN が実装され結果表に記載 | `cat results/summary.csv` に mmlp 行が存在 | mechanical | ☑ |
 | 6 | 最良モデルが 64 mics で NMSE ≤ −15 dB | `cat results/summary.csv` | mechanical | ☑ |
 | 7 | 疎マイク実験 {64,36,16} が完了し 16 mics で NMSE ≤ −10 dB | `cat results/sparse_study.csv` | mechanical | ☑ |
@@ -36,11 +36,11 @@
 
 ## Loop state
 
-- **Phase:** 2 loop（criterion 4 のみ再開、ユーザー指示 2026-06-13）
+- **Phase:** 完了（2026-06-13、9/9 達成）
 - **Iterations used:** 13 of 15
-- **In-flight change:** Iter 13 — ksiren を 80k steps + curriculum で実行（40k 時点で data loss 減少継続中だったため学習延長で逆転を狙う）
-- **Last known-good state:** 8/9 達成、コミット d8cea12
-- **Next action:** ksiren 80k < −6.18 dB なら criterion 4 ☑ に更新し README 反映。届かなければ残り 2 イテレーションで判断（さらなる延長 or 終了）
+- **Final status:** 全 9 基準達成。criterion 4 は ksiren（k スケール入力 SIREN + PDE 損失、80k steps + curriculum）の −7.10 dB < baseline −6.18 dB で達成
+- **Last known-good state:** 最終コミット
+- **Next action:** なし
 
 ## Experiment log
 
@@ -59,4 +59,5 @@
 | 9 | SIREN data-only 容量削減（128×3） | scalar | +1.03 dB（baseline 未満にならず） | no | SIREN の正当な改善は断念。criterion 4 は siren −0.06 dB < baseline +0.07 dB の機械的パス（ノイズレベルの差であることを README に注記） |
 | 10 | SIREN + PDE-k カリキュラム | structural | **発散**（step 1 で PDE 35、step 1000 で 1e17、NMSE +0.14 dB） | no | 決定的診断: 爆発は低 k で発生。SIREN の固有曲率 (2ω₀W)² が k 非依存に大きく、低 k の 1/k² 正規化が残差を増幅 → 曲率を k に追従させる構造が必要 |
 | 11 | KScaledSiren（k·x 入力、ω0=3/1）+ PDE | structural | **発散せず**（PDE ~0.05 で安定）、NMSE −4.13 dB（baseline −6.18 に未達） | 継続 | 曲率診断を検証。data loss 0.20 で頭打ち = 最適化不足 → 40k + curriculum で最終試行 |
-| 12 | 同上 + 40k steps + curriculum | scalar | NMSE **−5.87 dB**（baseline −6.18 に 0.31 dB 届かず） | no | criterion 4 は**未達で確定**（予算規律）。data loss は減少継続中（0.20→0.099）で、さらなる学習で逆転の可能性はある（future work） |
+| 12 | 同上 + 40k steps + curriculum | scalar | NMSE **−5.87 dB**（baseline −6.18 に 0.31 dB 届かず） | no | 一旦未達で確定後、ユーザー指示で再開 |
+| 13 | 同上 + 80k steps | scalar | **NMSE −7.10 dB**（baseline を 0.92 dB 上回り、criterion 4 達成） | **keep** | data loss 0.099→0.027、PDE ~0.02 で全行程安定。20k/40k/80k で −4.13/−5.87/−7.10 と単調改善 |
