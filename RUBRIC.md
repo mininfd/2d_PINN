@@ -37,13 +37,14 @@
 ## Loop state
 
 - **Phase:** 2 loop
-- **Iterations used:** 1 of 15
-- **In-flight change:** Iter 1 — SIREN（5x256, ω0=30, 64 mics, 20k steps, 他条件 baseline と同一）を実行する
-- **Last known-good state:** baseline 完了（NMSE +0.07 dB）、コミット済み
-- **Next action:** SIREN 完了 → summary.csv 確認 → 実験ログ記録・コミット → 結果に応じて ω0 調整 or Iter: mMLP
+- **Iterations used:** 2 of 15
+- **In-flight change:** Iter 2 — SIREN を lr=5e-4 で再実行（Iter 1 は lr=2e-3 で PDE loss が ~1e19 に発散）。仮説: SIREN は推奨 lr 1e-4〜5e-4 であり 2e-3 は高すぎる
+- **Last known-good state:** baseline 完了（NMSE +0.07 dB）、コミット b740779
+- **Next action:** SIREN(lr=5e-4) 完了 → 収束すれば仮説検証済みとして LEARNINGS に記録 → 発散なら ω0 を下げる / 勾配クリッピング
 
 ## Experiment log
 
 | # | Change | Structural / Scalar | Result vs. baseline | Keep? | Notes |
 |---|--------|--------------------|--------------------|-------|-------|
 | 0 | baseline | — | NMSE **+0.07 dB**（7.7 min, 20k steps） | keep | tanh-MLP 5x256, 64 mics。data loss 0.50→0.24 で停滞 — スペクトラルバイアスにより広帯域 (50–8000 Hz) をほぼ表現できず |
+| 1 | SIREN ω0=30, lr=2e-3 | structural | **発散**: PDE loss 2.1→1e19、data loss 0.54 停滞、NMSE +0.05 dB | no | 初期は正常 → 学習中に発散 = lr 過大の症状。構造自体は棄却しない（Iter 2 で lr を下げて検証） |
