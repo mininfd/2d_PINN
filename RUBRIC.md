@@ -37,7 +37,7 @@
 ## Loop state
 
 - **Phase:** 2 loop
-- **Iterations used:** 8 of 15
+- **Iterations used:** 9 of 15
 - **In-flight change:** Iter 8 — 最終構成（psource + curriculum + 40k steps, lr 5e-4, reg 1.0）で sparse_study.csv 再生成（{64,36,16}）+ 64 mics を summary.csv へ（best_model.pt 保存）。続けて SIREN 正当改善の単発試行（pde_weight 0.01 + clip 1.0 + lr 1e-4 + curriculum）
 - **Last known-good state:** psource 16 mics −18.12 dB（40k, diag.csv）、コミット a9f53bf
 - **Next action:** 結果記録 → run_all.sh 更新 → 可視化生成 → README 執筆 → Phase 3 検証（機械チェック + verifier subagent）
@@ -55,3 +55,5 @@
 | 6 | PointSourceNet（ESM, M=16 学習可能位置）@16 mics | structural | −3.76 dB（data loss 0.20 で停滞） | 調査→継続 | 局所解: 鏡像 2 音源 (−0.42,−0.43)/(−0.42,+1.43) はほぼ同定、主音源 (−0.5,+0.5) が未捕捉（最寄り候補が (−0.86,+0.47) で停止）。位置地形が高周波で振動的 → 周波数カリキュラムで解消を図る |
 | 7 | psource + 周波数カリキュラム @16 mics | structural | **NMSE −10.21 dB**（data loss 0.008、目標 −10 dB 達成） | **keep** | 3 真音源すべてを誤差 ~0.02 で同定（各 2 候補が振幅分担）。カリキュラム仮説検証済み。マージン薄 → 40k steps で強化を試行 |
 | 7b | 同上 + 40k steps | scalar | **NMSE −18.12 dB** @16 mics（+8 dB 改善） | **keep** | 全帯域到達後の精密化時間が支配的。これを最終構成とする |
+| 8 | 最終構成で全実験 | — | summary: psource 64 → **−33.27 dB**。sparse: 64/36/16 → −25.65/−31.39/**−22.06 dB**。SIREN(pde_w=0.01+clip+curr) → −0.01 dB | **keep** | criteria 6・7 を大差で達成。SIREN は PDE 重み 0.01 でも学習不能（ルール補強）。best_model.pt 保存 |
+| 9 | SIREN data-only 容量削減（128×3） | scalar | （実行中） | — | criterion 4 を「正当に」満たす最後の試行。失敗なら −0.06 dB の機械的パスを正直に注記 |

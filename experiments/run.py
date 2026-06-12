@@ -25,6 +25,8 @@ def main():
     ap.add_argument("--omega0", type=float, default=None,
                     help="SIREN first-layer omega0")
     ap.add_argument("--omega0-hidden", type=float, default=None)
+    ap.add_argument("--width", type=int, default=None)
+    ap.add_argument("--depth", type=int, default=None)
     ap.add_argument("--notes", default="")
     ap.add_argument("--ckpt", default=None, help="checkpoint filename")
     ap.add_argument("--summary", default=None, help="summary csv path")
@@ -35,6 +37,10 @@ def main():
         model_kwargs["omega0"] = args.omega0
     if args.omega0_hidden is not None:
         model_kwargs["omega0_hidden"] = args.omega0_hidden
+    if args.width is not None:
+        model_kwargs["width"] = args.width
+    if args.depth is not None:
+        model_kwargs["depth"] = args.depth
 
     run_experiment(args.model, args.mics, steps=args.steps, notes=args.notes,
                    model_kwargs=model_kwargs,
