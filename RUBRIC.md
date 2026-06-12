@@ -37,10 +37,10 @@
 ## Loop state
 
 - **Phase:** 2 loop
-- **Iterations used:** 3 of 15
-- **In-flight change:** Iter 3 — HerglotzNet（平面波基底 J=256、係数 SIREN(k)、Helmholtz 厳密充足、data 損失のみ）を実装して 64 mics で実行
-- **Last known-good state:** baseline 完了（NMSE +0.07 dB）、コミット 1fc5f53
-- **Next action:** HerglotzNet 完了 → NMSE 確認・ログ・コミット → 良ければ criterion 5 用 mMLP 実行 → 疎マイク実験
+- **Iterations used:** 4 of 15
+- **In-flight change:** Iter 4 — 疎マイク実験（herglotz, {64,36,16} mics, lr=5e-4, data-only）→ sparse_study.csv。続けて mMLP 64 mics（criterion 5、baseline 同条件）
+- **Last known-good state:** herglotz −16.11 dB、コミット be7ff32 直後の results 含め次コミットで保存
+- **Next action:** sparse 16 mics が −10 dB を満たすか確認。満たさなければ正則化（coef weight decay / J 削減）を検討。その後 SIREN の正当な改善（pde_weight 縮小+clip+lr 1e-4）を 1 回試す
 
 ## Experiment log
 
@@ -49,3 +49,4 @@
 | 0 | baseline | — | NMSE **+0.07 dB**（7.7 min, 20k steps） | keep | tanh-MLP 5x256, 64 mics。data loss 0.50→0.24 で停滞 — スペクトラルバイアスにより広帯域 (50–8000 Hz) をほぼ表現できず |
 | 1 | SIREN ω0=30, lr=2e-3 | structural | **発散**: PDE loss 2.1→1e19、data loss 0.54 停滞、NMSE +0.05 dB | no | 初期は正常 → 学習中に発散 = lr 過大の症状。構造自体は棄却しない（Iter 2 で lr を下げて検証） |
 | 2 | SIREN lr=5e-4 | scalar | **発散**: PDE loss ~1e17、NMSE −0.06 dB | no | lr 仮説棄却。診断: data-only は loss 1.6e-6 まで収束（NMSE +0.27 dB = 過学習）、grad_clip=1.0 でも PDE は 1e8 に爆発 → PDE 損失項が根本原因 |
+| 3 | HerglotzNet J=256（平面波基底 + SIREN(k) 係数、data 損失のみ） | structural | **NMSE −16.11 dB**（1.1 min）— baseline 比 −16.2 dB 改善、criterion 6 達成 | **keep** | PDE はアーキテクチャで厳密充足（テストで autograd 検証）。途中 loss スパイクあり（cosine lr で回復） |
