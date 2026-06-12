@@ -19,9 +19,9 @@
 |---|-----------|-------------------------------|------|--------|
 | 1 | PDE 損失 PINN（pde_weight > 0、NN ベース）が NMSE < −7.78 dB @64 mics | `cat results/summary.csv`（該当行の notes に PDE 使用を明記） | mechanical | ☑（ksiren 160k −7.83） |
 | 2 | 勝者構成の再現実行（同一コマンド 2 回目）でも < −7.78 dB | `cat results/summary.csv` に同構成 2 行 | mechanical | ☑（再現も −7.83） |
-| 3 | 単体テストが通過 | `C:\Projects\venv\Scripts\python.exe -m pytest tests -q` | mechanical | ☐ |
-| 4 | 勝者の再現コマンドが README に記載され、手法・結果が文書化 | verifier subagent | judgment | ☐ |
-| 5 | 失敗から得た検証済みルールが LEARNINGS.md に追記 | inspection | mechanical | ☐ |
+| 3 | 単体テストが通過 | `C:\Projects\venv\Scripts\python.exe -m pytest tests -q` | mechanical | ☑（12 passed） |
+| 4 | 勝者の再現コマンドが README に記載され、手法・結果が文書化 | verifier subagent | judgment | ☑（verifier PASS） |
+| 5 | 失敗から得た検証済みルールが LEARNINGS.md に追記 | inspection | mechanical | ☑（3 ルール追記） |
 
 ## 探索候補（優先順）
 
@@ -31,11 +31,9 @@
 
 ## Loop state
 
-- **Phase:** 2 loop
-- **Iterations used:** 3 of 12
-- **In-flight change:** Phase 3 — pytest（criterion 3）→ README/LEARNINGS 更新（criteria 4,5）→ verifier subagent
-- **Last known-good state:** ksiren 160k −7.83 dB ×2（criteria 1,2 ✓）
-- **Next action:** verifier 判定 → 最終報告
+- **Phase:** 完了（2026-06-13、5/5 達成、3/12 イテレーション）
+- **Final status:** ksiren（KScaledSiren）160k steps + curriculum が −7.83 dB ×2 回で mMLP（−7.78）を更新。独立 verifier が全基準 PASS と判定
+- **Next action:** なし（さらに更新を狙う場合の候補: pde_weight バランス調整、L-BFGS 仕上げ、RBA 重み付け、320k 延長 ~−8.3 dB 見込みだが 137 分）
 
 ## Experiment log
 
