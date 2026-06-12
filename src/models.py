@@ -137,6 +137,32 @@ class HerglotzNet(nn.Module):
         return (c ** 2).mean()
 
 
+class KScaledSiren(nn.Module):
+    """SIREN over (k·x, k·y, k_norm): first-layer atoms are random plane
+    waves sin(W·kx), so the network's intrinsic curvature tracks k² across
+    the whole band and the k²-normalized Helmholtz residual stays O(1) —
+    the failure mode of the plain SIREN PINN (huge residual at low k from
+    k-independent curvature) is removed by construction.
+    """
+
+    def __init__(self, width=256, depth=5, out_dim=2, omega0=3.0,
+                 omega0_hidden=1.0):
+        super().__init__()
+        from . import data as D
+        k = D.wavenumber(D.frequencies())
+        self.k_min, self.k_max = float(k.min()), float(k.max())
+        self.net = Siren(in_dim=3, width=width, depth=depth, out_dim=out_dim,
+                         omega0=omega0, omega0_hidden=omega0_hidden)
+
+    def forward(self, x):
+        xy = (x[:, :2] + 1.0) * 0.5 - 0.5  # physical coords around center
+        k = (x[:, 2:3] + 1.0) * 0.5 * (self.k_max - self.k_min) + self.k_min
+        # with omega0=3 and first-layer |W| <= 1/3, atoms sin(3·W·k·x) reach
+        # spatial frequencies up to k — exactly the Helmholtz wave scale
+        feat = torch.cat([k * xy, x[:, 2:3]], dim=1)
+        return self.net(feat)
+
+
 class _BesselJ0(torch.autograd.Function):
     """torch.special.bessel_j0 with the (missing) backward J0'(x) = -J1(x)."""
 
@@ -229,4 +255,6 @@ def make_model(name: str, **kwargs) -> nn.Module:
         return HerglotzNet(**kwargs)
     if name in ("psource", "esm"):
         return PointSourceNet(**kwargs)
+    if name == "ksiren":
+        return KScaledSiren(**kwargs)
     raise ValueError(f"unknown model: {name}")

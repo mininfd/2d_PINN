@@ -37,10 +37,10 @@
 ## Loop state
 
 - **Phase:** 2 loop
-- **Iterations used:** 10 of 15
-- **In-flight change:** Iter 10 — run_all 再現で baseline が −6.18 dB に変動（GPU 非決定性、LEARNINGS 記録済み）し criterion 4 が不成立化。PDE コロケーション k にもカリキュラムを適用した SIREN（pde_weight 1.0, lr 5e-4, 20k）で正当なパスを試行
-- **Last known-good state:** run_all 完走（criterion 8 ✓）、psource 64→−34.91 / 16→−22.06 dB、コミット 1b686b9
-- **Next action:** SIREN+PDE-curriculum の NMSE 確認（< −6.18 で criterion 4 ✓）→ Phase 3: 全機械チェック + criterion 9 verifier → 最終報告
+- **Iterations used:** 11 of 15
+- **In-flight change:** Iter 11 — KScaledSiren（空間入力を k·x にスケール → 第 1 層が sin(W·kx) のランダム平面波、固有曲率が k² に追従し正規化 PDE 残差が全帯域 O(1)）を実装、pde_weight 1.0 で実行
+- **Last known-good state:** run_all 完走（criterion 8 ✓）、psource 64→−34.91 / 16→−22.06 dB、コミット e599ab8
+- **Next action:** ksiren < −6.18 dB なら criterion 4 を SIREN 系 PINN として達成と注記。失敗なら criterion 4 未達で Phase 3 へ（機械チェック + criterion 9 verifier → 最終報告）
 
 ## Experiment log
 
@@ -57,3 +57,4 @@
 | 7b | 同上 + 40k steps | scalar | **NMSE −18.12 dB** @16 mics（+8 dB 改善） | **keep** | 全帯域到達後の精密化時間が支配的。これを最終構成とする |
 | 8 | 最終構成で全実験 | — | summary: psource 64 → **−33.27 dB**。sparse: 64/36/16 → −25.65/−31.39/**−22.06 dB**。SIREN(pde_w=0.01+clip+curr) → −0.01 dB | **keep** | criteria 6・7 を大差で達成。SIREN は PDE 重み 0.01 でも学習不能（ルール補強）。best_model.pt 保存 |
 | 9 | SIREN data-only 容量削減（128×3） | scalar | +1.03 dB（baseline 未満にならず） | no | SIREN の正当な改善は断念。criterion 4 は siren −0.06 dB < baseline +0.07 dB の機械的パス（ノイズレベルの差であることを README に注記） |
+| 10 | SIREN + PDE-k カリキュラム | structural | **発散**（step 1 で PDE 35、step 1000 で 1e17、NMSE +0.14 dB） | no | 決定的診断: 爆発は低 k で発生。SIREN の固有曲率 (2ω₀W)² が k 非依存に大きく、低 k の 1/k² 正規化が残差を増幅 → 曲率を k に追従させる構造が必要 |
