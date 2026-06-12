@@ -37,10 +37,10 @@
 ## Loop state
 
 - **Phase:** 2 loop
-- **Iterations used:** 9 of 15
-- **In-flight change:** criterion 8 検証 — `bash run_all.sh` フル再現実行（テスト→全モデル→疎マイク→図、~36 分）。README・図は作成済み
-- **Last known-good state:** 全実験完了（psource 64→−33.27 / 16→−22.06 dB）、コミット済み
-- **Next action:** run_all 完走確認 → Phase 3: 全機械チェック実行 + criterion 9 の verifier subagent → 最終報告
+- **Iterations used:** 10 of 15
+- **In-flight change:** Iter 10 — run_all 再現で baseline が −6.18 dB に変動（GPU 非決定性、LEARNINGS 記録済み）し criterion 4 が不成立化。PDE コロケーション k にもカリキュラムを適用した SIREN（pde_weight 1.0, lr 5e-4, 20k）で正当なパスを試行
+- **Last known-good state:** run_all 完走（criterion 8 ✓）、psource 64→−34.91 / 16→−22.06 dB、コミット 1b686b9
+- **Next action:** SIREN+PDE-curriculum の NMSE 確認（< −6.18 で criterion 4 ✓）→ Phase 3: 全機械チェック + criterion 9 verifier → 最終報告
 
 ## Experiment log
 

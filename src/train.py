@@ -93,8 +93,11 @@ def train_pinn(model, mic_xy, freqs, p_mic, *, steps=20000, lr=2e-3,
 
         if pde_weight > 0:
             cxy = torch.rand(colloc_batch, 2, device=device)
+            # under the curriculum, collocation k follows the exposed band so
+            # the PDE is never evaluated far above what the data has shaped
+            k_hi = k_min + frac * (k_max - k_min) if k_curriculum else k_max
             ck = torch.empty(colloc_batch, 1, device=device).uniform_(k_min,
-                                                                      k_max)
+                                                                      k_hi)
             r = helmholtz_residual(model, cxy, ck, k_min, k_max)
             loss_pde = torch.mean(r ** 2)
         else:

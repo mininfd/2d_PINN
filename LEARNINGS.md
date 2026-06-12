@@ -19,6 +19,9 @@ Distilled, verified facts and rules for this project. Read this before working; 
 - **[verified 2026-06-12]** 学習可能位置の等価音源は全帯域一括学習だと局所解に陥る（16 mics で主音源を取り逃し −3.76 dB）。低周波 5% から帯域を線形拡大する周波数カリキュラム（60% 時点で全帯域）で 3 音源すべて誤差 ~0.02 で同定、−10.21 dB。
   **Rule:** 音源位置最適化は必ず周波数マーチングで行う。
 
+- **[verified 2026-06-12]** 同一シード（torch.manual_seed(0)）でも GPU 非決定性により tanh-PINN baseline の結果が +0.07 dB と −6.18 dB に分かれた（双安定な学習）。
+  **Rule:** ~0 dB 付近の NN-PINN の結果は再現でブレる前提で扱い、基準判定は再現実行後のファイル（summary.csv / baseline.log）に対して行う。
+
 ## Rules
 
 - /goal-loop 中は許可プロンプトを要する操作（対話コマンド、破壊的操作）を避け、ユーザーに確認せずループを完結させる（ユーザー指示 2026-06-12）。
