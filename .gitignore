@@ -6,6 +6,7 @@ results/*.log
 results/*.csv
 results/*.png
 results/*.npy
+results/*.pt
 *.egg-info/
 dist/
 build/
